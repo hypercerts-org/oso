@@ -63,13 +63,17 @@ sqlmesh = { extras = ["trino"], version = "^0.129.0" }
 dagster-duckdb = "^0.24.0"
 dagster-duckdb-polars = "^0.24.0"
 google-cloud-bigquery-storage = "^2.25.0"
-dagster-sqlmesh = "0.2.0.dev3"
+dagster-sqlmesh = {path = "../dagster-sqlmesh", develop = true}
 google-auth = "^2.34.0"
 pillow = "^10.4.0"
 dagster-k8s = "^0.24.6"
 pyiceberg = { extras = ["hive"], version = "^0.7.1" }
 connectorx = "^0.4.0"
 bokeh = "^3.6.1"
+pyvis = "^0.3.2"
+networkx = "^3.4.2"
+jupyter = "^1.1.1"
+matplotlib = "^3.9.3"
 
 
 [tool.poetry.scripts]

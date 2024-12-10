@@ -1,11 +1,9 @@
-from metrics_tools.factory import (
-    timeseries_metrics,
-    MetricQueryDef,
-    RollingConfig,
-)
+import os
+
+from metrics_tools.factory import MetricQueryDef, RollingConfig, timeseries_metrics
 
 timeseries_metrics(
-    start="2015-01-01",
+    start=os.environ.get("SQLMESH_TIMESERIES_METRICS_START", "2015-01-01"),
     catalog="metrics",
     model_prefix="timeseries",
     timeseries_sources=[
