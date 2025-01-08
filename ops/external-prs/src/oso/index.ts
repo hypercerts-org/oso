@@ -310,6 +310,16 @@ async function testDeploySetup(args: TestDeploySetupArgs) {
   );
 }
 
+async function testDeployRecce(args: TestDeploySetupArgs) {
+  return args.coordinator.recce(
+    args.pr,
+    args.sha,
+    args.profilePath,
+    args.serviceAccountPath,
+    args.checkoutPath,
+  );
+}
+
 async function testDeployTeardown(args: TestDeployTeardownArgs) {
   return args.coordinator.teardown(args.pr);
 }
@@ -370,6 +380,28 @@ function testDeployGroup(group: Argv) {
         });
       },
       (args) => handleError(testDeploySetup(args)),
+    )
+    .command<TestDeploySetupArgs>(
+      "recce <pr> <sha> <profile-path> <service-account-path> <checkout-path>",
+      "subcommand for a setting up Recce for the test deployment",
+      (yags) => {
+        yags.positional("pr", {
+          description: "The PR",
+        });
+        yags.positional("sha", {
+          description: "the sha to deploy",
+        });
+        yags.positional("profile-path", {
+          description: "the profile path to write to",
+        });
+        yags.positional("service-account-path", {
+          description: "the profile path to write to",
+        });
+        yags.positional("checkout-path", {
+          description: "the path to the checked out code",
+        });
+      },
+      (args) => handleError(testDeployRecce(args)),
     )
     .command<TestDeployTeardownArgs>(
       "teardown <pr>",

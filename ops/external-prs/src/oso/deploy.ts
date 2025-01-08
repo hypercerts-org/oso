@@ -108,7 +108,7 @@ export class PRTestDeployCoordinator {
       await this.appUtils.setStatusComment(
         pr,
         dedent`
-        Test deployment for PR #${pr} failed on commit \`${sha}\`. With error: 
+        Test deployment for PR #${pr} failed on commit \`${sha}\`. With error:
 
         Error stack:
         \`\`\`
@@ -119,7 +119,169 @@ export class PRTestDeployCoordinator {
         \`\`\`
         ${err.stdout}
         \`\`\`
-        
+
+        DBT stderr:
+        \`\`\`
+        ${err.stderr}
+        \`\`\`
+      `,
+      );
+
+      return;
+    }
+    const datasetFQN = `${this.projectId}.${datasetName}`;
+
+    await this.completeCheckStatus(sha, datasetFQN);
+
+    const datasetURL = `https://console.cloud.google.com/bigquery?project=oso-pull-requests&ws=!1m4!1m3!3m2!1soso-pull-requests!2spr_${pr}`;
+
+    await this.appUtils.setStatusComment(
+      pr,
+      dedent`
+      Test deployment for PR #${pr} successfully deployed to [\`${datasetFQN}\`](${datasetURL}).
+    `,
+    );
+  }
+
+  async recce(
+    pr: number,
+    sha: string,
+    profilePath: string,
+    serviceAccountPath: string,
+    checkoutPath: string,
+  ) {
+    // This should create a two public dataset inside a "testing" project
+    // specifically for a pull request and its merge base, and prepare the
+    // dbt artifacts for Recce.
+    //
+    // This project is intended to be only used to push the last 2 days worth of
+    // data into a dev environment
+    //
+    // The service account associated with this account should only have access to
+    // bigquery no other resources. The service account should also continously be
+    // rotated. So the project in use should have a very short TTL on service
+    // account keys.
+    logger.info({
+      mesage: "setting up Recce for test deployment",
+      pr: pr,
+      repo: this.repo,
+    });
+
+    const prInfo = await this.octo.rest.pulls.get({
+      owner: this.repo.owner,
+      repo: this.repo.name,
+      pull_number: pr,
+    });
+    const baseSha = prInfo.data.base.sha;
+
+    // Compare the baseSha and the current sha to see if anything has changed in the dbt directory.
+    // If not then report a success and that this check is not needed for this PR.
+    if (!(await this.hasDbtChanges(baseSha, sha, checkoutPath))) {
+      await this.noRelevantChanges(sha);
+      await this.appUtils.setStatusComment(
+        pr,
+        dedent`
+        Test deployment unnecessary, no dbt files have been changed.
+        `,
+      );
+      return;
+    }
+
+    const git = simpleGit({ baseDir: checkoutPath });
+    const datasetName = this.datasetNameFromPR(pr);
+    const baseDatasetName = `${datasetName}_base`;
+
+    // Prepare the base environment
+    git.checkout(baseSha);
+    await this.getOrCreateDataset(baseDatasetName);
+    await this.generateDbtProfile(
+      baseDatasetName,
+      profilePath,
+      serviceAccountPath,
+    );
+
+    // Run dbt and generate dbt docs
+    try {
+      await this.runDbt(checkoutPath, "target-base");
+      await this.generateDbtDocs(checkoutPath, "target-base");
+    } catch (e) {
+      const err = e as Error & {
+        stdout: string;
+        stderr: string;
+        code: number;
+        signal: string;
+      };
+      logger.error({
+        message: "error running dbt",
+        error: e,
+      });
+
+      await this.failCheckStatus(sha);
+
+      await this.appUtils.setStatusComment(
+        pr,
+        dedent`
+        Test deployment for PR #${pr} failed on commit \`${sha}\`. With error:
+
+        Error stack:
+        \`\`\`
+        ${err.stack}
+        \`\`\`
+
+        DBT stdout:
+        \`\`\`
+        ${err.stdout}
+        \`\`\`
+
+        DBT stderr:
+        \`\`\`
+        ${err.stderr}
+        \`\`\`
+      `,
+      );
+
+      return;
+    }
+
+    // Prepare the current environment
+    git.checkout(sha);
+    await this.getOrCreateDataset(datasetName);
+    await this.generateDbtProfile(datasetName, profilePath, serviceAccountPath);
+
+    // Run dbt, generate dbt docs, and run Recce
+    try {
+      await this.runDbt(checkoutPath);
+      await this.generateDbtDocs(checkoutPath);
+      await this.runRecce(checkoutPath, pr);
+    } catch (e) {
+      const err = e as Error & {
+        stdout: string;
+        stderr: string;
+        code: number;
+        signal: string;
+      };
+      logger.error({
+        message: "error running dbt",
+        error: e,
+      });
+
+      await this.failCheckStatus(sha);
+
+      await this.appUtils.setStatusComment(
+        pr,
+        dedent`
+        Test deployment for PR #${pr} failed on commit \`${sha}\`. With error:
+
+        Error stack:
+        \`\`\`
+        ${err.stack}
+        \`\`\`
+
+        DBT stdout:
+        \`\`\`
+        ${err.stdout}
+        \`\`\`
+
         DBT stderr:
         \`\`\`
         ${err.stderr}
@@ -315,14 +477,38 @@ export class PRTestDeployCoordinator {
     return await fsPromise.writeFile(profilePath, contents);
   }
 
-  private async runDbt(p: string) {
+  private async runDbt(p: string, targetPath: string = "target") {
     const absPath = path.resolve(p);
-    return await execPromise(`${absPath}/.venv/bin/dbt run --no-use-colors`, {
-      cwd: absPath,
-      env: {
-        PLAYGROUND_DAYS: "1",
+    return await execPromise(
+      `${absPath}/.venv/bin/dbt run --no-use-colors --target-path ${targetPath}`,
+      {
+        cwd: absPath,
+        env: {
+          PLAYGROUND_DAYS: "1",
+        },
       },
-    });
+    );
+  }
+
+  private async generateDbtDocs(p: string, targetPath: string = "target") {
+    const absPath = path.resolve(p);
+    return await execPromise(
+      `${absPath}/.venv/bin/dbt docs generate --no-use-colors --target-path ${targetPath}`,
+      {
+        cwd: absPath,
+        env: {
+          PLAYGROUND_DAYS: "1",
+        },
+      },
+    );
+  }
+
+  private async runRecce(p: string, pr: number) {
+    const absPath = path.resolve(p);
+    return await execPromise(
+      `${absPath}/.venv/bin/recce run recce_state_pr_${pr}.json`,
+      { cwd: absPath },
+    );
   }
 
   private async leaveDeploymentComment(pr: number, message: string) {

@@ -24,22 +24,22 @@ pnpm external-prs initialize-check {sha} {login} {check-name}
 
 ```bash
 # Handle oso comments
-pnpm external-prs oso parse-comment {comment} {output}
+pnpm tools oso parse-comment {comment} {output}
 
 # Refresh gcp credentials for the test deployment infrastructure
-pnpm external-prs oso refresh-gcp-credentials {environment} {creds-path} {name}
+pnpm tools oso refresh-gcp-credentials {environment} {creds-path} {name}
 
 # Test deployment sub commands
-pnpm external-prs oso test-deploy --help
+pnpm tools oso test-deploy --help
 
 # Test deployment setup
-pnpm external-prs oso test-deploy setup {pr} {sha} {profile-path} {service-account-path} {checkout-path}
+pnpm tools oso test-deploy setup {pr} {sha} {profile-path} {service-account-path} {checkout-path}
 
 # Test deployment teardown
-pnpm external-prs oso test-deploy teardown {pr}
+pnpm tools oso test-deploy teardown {pr}
 
 # Test deployment clean
-pnpm external-prs oso test-deploy clean {ttl-seconds}
+pnpm tools oso test-deploy clean {ttl-seconds}
 ```
 
 ### OSS-Directory Specific
@@ -54,7 +54,7 @@ You can run the app via:
 
 ```bash
 # Handle PR validations
-pnpm external-prs ossd validate-prs {pr_number} {commit_sha} {main_path} {pr_path}
+pnpm tools ossd validate-prs {pr_number} {commit_sha} {main_path} {pr_path}
 ```
 
 If you've configured your GitHub secrets correctly,
