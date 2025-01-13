@@ -1,6 +1,7 @@
-import typing as t
-import duckdb
 import os
+import typing as t
+
+import duckdb
 from google.cloud import bigquery
 
 project_id = os.getenv("GOOGLE_PROJECT_ID")
@@ -38,6 +39,8 @@ def initialize_local_duckdb(path: str):
             "opensource-observer.oso_playground.artifacts_by_project_v1": "sources.artifacts_by_project_v1",
             "opensource-observer.oso_playground.projects_by_collection_v1": "sources.projects_by_collection_v1",
             "opensource-observer.oso_playground.timeseries_events_aux_issues_by_artifact_v0": "sources.timeseries_events_aux_issues_by_artifact_v0",
+            "opensource-observer.oso.sboms_v0": "sources.sboms_v0",
+            "opensource-observer.oso.package_owners_v0": "sources.package_owners_v0",
         },
         path,
     )
