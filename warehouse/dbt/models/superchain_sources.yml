@@ -1,10 +1,16 @@
 sources:
   - name: superchain
-    database: opensource-observer
+    database: optimism_superchain_raw_onchain_data
     schema: superchain
     tables:
-      - name: optimism_traces
-        identifier: optimism_traces
-        meta:
-          dagster:
-            asset_key: ["optimism", "traces"]
+      - name: transactions
+        identifier: transactions
+
+      - name: traces
+        identifier: traces
+
+      - name: logs
+        identifier: logs
+
+      - name: blocks
+        identifier: blocks
