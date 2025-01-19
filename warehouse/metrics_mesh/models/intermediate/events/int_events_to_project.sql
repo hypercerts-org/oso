@@ -13,7 +13,7 @@ select
   events.event_type,
   events.amount
 from @oso_source('bigquery.oso.timeseries_events_by_artifact_v0') events
-inner join @oso_source('bigquery.oso.artifacts_by_project_v1') artifacts
+inner join metrics.int_artifacts_by_project artifacts
   on
     events.to_artifact_id
     = artifacts.artifact_id

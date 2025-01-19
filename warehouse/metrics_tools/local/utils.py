@@ -186,15 +186,18 @@ def initialize_local_duckdb(path: str):
     }
 
     table_mapping = {
-        "opensource-observer.oso_playground.artifacts_by_project_v1": "sources.artifacts_by_project_v1",
-        "opensource-observer.oso_playground.int_artifacts_in_ossd_by_project": "sources.int_artifacts_in_ossd_by_project",
+        "opensource-observer.oso_playground.int_deployers": "sources.int_deployers",
+        "opensource-observer.oso_playground.int_deployers_by_project": "sources.int_deployers_by_project",
+        "opensource-observer.oso_playground.int_factories": "sources.int_factories",
+        "opensource-observer.oso_playground.int_proxies": "sources.int_proxies",
         "opensource-observer.oso_playground.int_superchain_potential_bots": "sources.int_superchain_potential_bots",
-        "opensource-observer.oso_playground.package_owners_v0": "sources.package_owners_v0",
-        "opensource-observer.oso_playground.projects_by_collection_v1": "sources.projects_by_collection_v1",
-        "opensource-observer.oso_playground.projects_v1": "sources.projects_v1",
-        "opensource-observer.oso_playground.sboms_v0": "sources.sboms_v0",
+        "opensource-observer.oso_playground.stg_deps_dev__packages": "sources.stg_deps_dev__packages",
+        "opensource-observer.oso_playground.stg_ossd__current_collections": "sources.stg_ossd__current_collections",
+        "opensource-observer.oso_playground.stg_ossd__current_projects": "sources.stg_ossd__current_projects",
+        "opensource-observer.oso_playground.stg_ossd__current_repositories": "sources.stg_ossd__current_repositories",
         "opensource-observer.oso_playground.timeseries_events_by_artifact_v0": "sources.timeseries_events_by_artifact_v0",
         "opensource-observer.oso_playground.timeseries_events_aux_issues_by_artifact_v0": "sources.timeseries_events_aux_issues_by_artifact_v0",
+        "opensource-observer.ossd.sbom": "sources_ossd.sbom",
     }
 
     table_mapping.update(defi_llama_tables)

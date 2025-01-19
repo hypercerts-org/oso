@@ -14,7 +14,7 @@ select
   events.event_source,
   events.amount
 from @oso_source('bigquery.oso.timeseries_events_by_artifact_v0') events
-inner join @oso_source('bigquery.oso.artifacts_by_project_v1') as artifacts
+inner join metrics.int_artifacts_by_project as artifacts
   on events.to_artifact_id = artifacts.artifact_id
 where
   events.event_type in (
@@ -29,6 +29,6 @@ where
   )
   and events.to_artifact_id not in (
     select artifact_id
-    from @oso_source('bigquery.oso.int_artifacts_in_ossd_by_project')
+    from metrics.int_artifacts_in_ossd_by_project
     where artifact_type = 'WALLET'
   )

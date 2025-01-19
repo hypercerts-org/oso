@@ -11,8 +11,8 @@ with all_dependencies as (
     owners.package_owner_artifact_id as dependency_artifact_id,
     sbom.to_package_artifact_name as dependency_name,
     sbom.to_package_artifact_source as dependency_source
-  from @oso_source('bigquery.oso.sboms_v0') as sbom
-  inner join @oso_source('bigquery.oso.package_owners_v0') as owners
+  from metrics.sboms_v0 as sbom
+  inner join metrics.package_owners_v0 as owners
     on
       sbom.to_package_artifact_name = owners.package_artifact_name
       and sbom.to_package_artifact_source = owners.package_artifact_source

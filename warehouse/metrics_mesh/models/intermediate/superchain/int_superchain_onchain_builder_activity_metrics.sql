@@ -25,7 +25,7 @@ with project_metrics as (
     ) as total_transactions,
     approx_count_distinct(events.from_artifact_id) as total_addresses
   from metrics.int_superchain_filtered_events events
-  inner join @oso_source('bigquery.oso.artifacts_by_project_v1') as artifacts
+  inner join metrics.int_artifacts_by_project as artifacts
     on events.to_artifact_id = artifacts.artifact_id
   where date(events.time) >= (current_date() - interval @lookback_days day)
   group by
@@ -38,5 +38,5 @@ select
   projects.project_name,
   projects.display_name
 from project_metrics
-inner join @oso_source('bigquery.oso.projects_v1') as projects
+inner join metrics.int_projects as projects
   on project_metrics.project_id = projects.project_id
